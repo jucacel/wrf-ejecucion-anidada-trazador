@@ -57,6 +57,7 @@ templates/
   rutas_linux.template.env
 commands/
   00_download_meteo.sh
+  00_download_gfs_nomads_example.sh
   00_check_entorno.sh
   01_preparar_arbol_caso.sh
   02_wps.sh
@@ -188,6 +189,16 @@ export MET_DATA_SOURCE="gfs_nomads"
 export GFS_DATE="20240901"
 export GFS_CYCLE="00"
 export GFS_FORECAST_HOURS="000 003 006 009 012"
+```
+
+Ese ejemplo corresponde a la ventana usada como referencia para la corrida del
+pulso iniciada en `2024-09-01_00:00:00`. Descarga cinco archivos GFS 0.25
+grados: `f000`, `f003`, `f006`, `f009` y `f012`.
+
+Tambien hay un script basico autocontenido:
+
+```bash
+bash commands/00_download_gfs_nomads_example.sh "$HOME/WRF_DATA/meteo/gfs_nomads_20240901"
 ```
 
 Opcionalmente se puede recortar espacialmente:

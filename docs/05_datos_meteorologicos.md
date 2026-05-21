@@ -70,6 +70,50 @@ export GFS_LEVELS="lev_10_m_above_ground=on&lev_2_m_above_ground=on&lev_surface=
 export GFS_VARIABLES="var_UGRD=on&var_VGRD=on&var_TMP=on&var_RH=on&var_HGT=on&var_PRES=on&var_PSFC=on&var_PRMSL=on&var_SPFH=on&var_SOILW=on&var_TSOIL=on&var_LAND=on"
 ```
 
+### Ejemplo usado para la corrida del pulso
+
+Para la corrida documentada en este repositorio se preparo una ventana corta
+iniciando el `2024-09-01_00:00:00`, con salida final de 4 horas y margen hasta
+`f012` para cubrir WPS, `real.exe`, pruebas de consistencia y pasos anidados.
+
+Configuracion usada como referencia:
+
+```bash
+export MET_DATA_SOURCE="gfs_nomads"
+export GFS_DATE="20240901"
+export GFS_CYCLE="00"
+export GFS_FORECAST_HOURS="000 003 006 009 012"
+```
+
+Archivos esperados:
+
+```text
+gfs.t00z.pgrb2.0p25.f000.grib2
+gfs.t00z.pgrb2.0p25.f003.grib2
+gfs.t00z.pgrb2.0p25.f006.grib2
+gfs.t00z.pgrb2.0p25.f009.grib2
+gfs.t00z.pgrb2.0p25.f012.grib2
+```
+
+Ejecucion con el script principal:
+
+```bash
+cp templates/rutas_linux.template.env rutas_linux.env
+vim rutas_linux.env
+bash commands/00_download_meteo.sh rutas_linux.env
+```
+
+Tambien se incluye un script basico, independiente del archivo `.env`, que deja
+claro el URL construido para cada hora:
+
+```bash
+bash commands/00_download_gfs_nomads_example.sh "$HOME/WRF_DATA/meteo/gfs_nomads_20240901"
+```
+
+Si esos archivos ya no estan disponibles en NOMADS por antiguedad del ciclo,
+usar una fuente historica equivalente, por ejemplo FNL/RDA o un archivo
+operativo/historico local, manteniendo los mismos tiempos requeridos por WPS.
+
 Despues de descargar, configurar WPS con `Vtable.GFS` y enlazar los GRIB:
 
 ```bash

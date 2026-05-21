@@ -22,7 +22,7 @@ case "${MET_DATA_SOURCE:-manual}" in
 
     BASE_URL="${GFS_NOMADS_BASE_URL:-https://nomads.ncep.noaa.gov/cgi-bin/filter_gfs_0p25.pl}"
     LEVELS="${GFS_LEVELS:-lev_10_m_above_ground=on&lev_2_m_above_ground=on&lev_surface=on&lev_mean_sea_level=on&lev_1000_mb=on&lev_925_mb=on&lev_850_mb=on&lev_700_mb=on&lev_500_mb=on&lev_300_mb=on&lev_200_mb=on}"
-    VARS="${GFS_VARIABLES:-var_UGRD=on&var_VGRD=on&var_TMP=on&var_RH=on&var_HGT=on&var_PRES=on&var_PRMSL=on&var_SPFH=on&var_LAND=on}"
+    VARS="${GFS_VARIABLES:-var_UGRD=on&var_VGRD=on&var_TMP=on&var_RH=on&var_HGT=on&var_PRES=on&var_PSFC=on&var_PRMSL=on&var_SPFH=on&var_SOILW=on&var_TSOIL=on&var_LAND=on}"
     SUBREGION="${GFS_SUBREGION:-}"
 
     for FH in $GFS_FORECAST_HOURS; do
