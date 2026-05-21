@@ -52,6 +52,7 @@ docs/
   03_trazador_inerte.md
   04_postproceso_imagenes.md
   05_datos_meteorologicos.md
+  06_emisiones_megan_anthro_pychemiss.md
 templates/
   rutas_linux.template.env
 commands/
@@ -65,6 +66,9 @@ commands/
   06_generar_pulso_trazador.sh
   07_run_wrf_d03_4h.sh
   08_postprocesar_d03.sh
+  09_check_emissions_tools.sh
+  10_pychemiss_local_emissions.sh
+  11_prepare_emissions_links.sh
 namelist_snippets/
   README.md
   namelist.input.tracer_4h.snippet
@@ -80,6 +84,7 @@ namelist_snippets/
 | `docs/03_trazador_inerte.md` | Resume configuracion de trazador, ventana temporal 4 h / 1 h y criterios de verificacion en `wrfout`. |
 | `docs/04_postproceso_imagenes.md` | Lista entradas, productos esperados y ejemplo de comando para generar figuras del penacho. |
 | `docs/05_datos_meteorologicos.md` | Documenta opciones para descargar GFS/NOMADS, FNL/RDA o ERA5/CDS y preparar archivos para WPS. |
+| `docs/06_emisiones_megan_anthro_pychemiss.md` | Explica como integrar MEGAN, ANTHRO_EMIS, PREP-CHEM-SRC, MOZBC, PyChEmiss y AAS4WRF al flujo WRF-Chem. |
 | `namelist_snippets/namelist.input.tracer_4h.snippet` | Fragmento orientativo de `namelist.input` para una corrida `d03` corta con `wrfchemi_d03`. |
 
 ## Requisitos previos
@@ -116,8 +121,14 @@ Variables principales:
 | `WRF_EM_REAL` | Carpeta `test/em_real` o equivalente con ejecutables WRF. |
 | `GEOG_DATA` | Datos geograficos WPS. |
 | `MET_DATA_ROOT` | Datos meteorologicos externos. |
+| `EMISSIONS_ROOT` | Raiz local para inventarios, salidas y archivos de emisiones. |
 | `MET_DATA_SOURCE` | Fuente de datos meteorologicos: `manual`, `gfs_nomads`, `fnl_rda` o `era5_cds`. |
 | `GFS_DATE`, `GFS_CYCLE`, `GFS_FORECAST_HOURS` | Parametros para descarga GFS/NOMADS si se usa `gfs_nomads`. |
+| `MEGAN_DIR`, `MEGAN_DATA` | Instalacion y datos base de MEGAN para emisiones biogenicas. |
+| `ANTHRO_DIR`, `ANTHRO_DATA` | Instalacion y datos de ANTHRO_EMIS para emisiones antropogenicas. |
+| `PREP_CHEM_DIR`, `MOZBC_DIR` | Herramientas opcionales para emisiones regionales y fronteras quimicas. |
+| `PYCHEMISS_DIR`, `PYCHEMISS_YML` | Instalacion y configuracion local de PyChEmiss. |
+| `AAS4WRF_DIR` | Alternativa NCL para convertir inventarios locales a `wrfchemi`. |
 | `NAMELIST_WPS` | `namelist.wps` real del caso. |
 | `NAMELIST_REAL` | `namelist.input` para `real.exe`. |
 | `NAMELIST_NDOWN12` | `namelist.input` para `ndown` d01 -> d02. |
@@ -129,6 +140,7 @@ Variables principales:
 | `PULSE_START` | Inicio del pulso. |
 | `PULSE_HOURS` | Duracion del pulso, aqui 1 hora. |
 | `RUN_HOURS` | Duracion de la corrida final, aqui 4 horas. |
+| `WRFCHEMI_FILE`, `WRFBIOS_FILE` | Archivos externos a enlazar como `wrfchemi_d03` y `wrfbiochemi_d03`. |
 | `POSTPROC_REPO` | Ruta local al repositorio de postprocesamiento/trazadores. |
 
 ## Flujo rapido
@@ -141,7 +153,9 @@ bash commands/02_wps.sh rutas_linux.env
 bash commands/03_real_d01_d02_d03.sh rutas_linux.env
 bash commands/04_ndown_d01_d02.sh rutas_linux.env
 bash commands/05_ndown_d02_d03.sh rutas_linux.env
+bash commands/09_check_emissions_tools.sh rutas_linux.env
 bash commands/06_generar_pulso_trazador.sh rutas_linux.env
+bash commands/11_prepare_emissions_links.sh rutas_linux.env
 bash commands/07_run_wrf_d03_4h.sh rutas_linux.env
 bash commands/08_postprocesar_d03.sh rutas_linux.env
 ```
@@ -326,6 +340,36 @@ fino, especialmente `wrfinput_d03` y la frontera que corresponda a la
 configuracion local.
 
 ### 8. Preparar pulso de trazador
+
+Antes de generar o enlazar emisiones, revisar las herramientas disponibles:
+
+```bash
+bash commands/09_check_emissions_tools.sh rutas_linux.env
+```
+
+Si el caso requiere emisiones biogenicas, antropogenicas o inventarios locales,
+ver `docs/06_emisiones_megan_anthro_pychemiss.md`. El flujo documenta:
+
+- MEGAN para `wrfbiochemi_d0x`;
+- ANTHRO_EMIS y PREP-CHEM-SRC para emisiones antropogenicas;
+- PyChEmiss para inventarios locales o pulsos transformados a `wrfchemi`;
+- AAS4WRF como alternativa NCL;
+- MOZBC para condiciones quimicas de frontera.
+
+Para ejecutar PyChEmiss desde una configuracion local:
+
+```bash
+bash commands/10_pychemiss_local_emissions.sh rutas_linux.env
+```
+
+Para enlazar emisiones ya generadas al directorio de corrida:
+
+```bash
+bash commands/11_prepare_emissions_links.sh rutas_linux.env
+```
+
+En el caso idealizado de este repositorio, el pulso de trazador se puede generar
+directamente como `wrfchemi_d03`:
 
 ```bash
 bash commands/06_generar_pulso_trazador.sh rutas_linux.env
