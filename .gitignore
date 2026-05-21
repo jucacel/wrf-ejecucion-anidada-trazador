@@ -1,0 +1,43 @@
+.DS_Store
+__pycache__/
+*.py[cod]
+
+# Local environment and machine-specific configuration
+.env
+rutas_linux.env
+local.env
+
+# WRF/WPS heavy products
+geo_em.d*.nc
+met_em.d*.*
+wrfinput_d*
+wrfbdy_d*
+wrfout_d*
+wrfrst_d*
+wrfchemi_*
+rsl.*
+GRIBFILE.*
+FILE_*
+PFILE_*
+
+# Data and generated outputs
+data/
+outputs/
+results/
+run/
+work/
+scratch/
+*.nc
+*.grib
+*.grb
+*.grb2
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.mp4
+*.pdf
+*.log
+*.zip
+*.tar
+*.tar.gz

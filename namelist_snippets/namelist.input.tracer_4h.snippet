@@ -1,0 +1,28 @@
+! Fragmento orientativo para una corrida corta de trazador inerte en d03.
+! Ajustar fechas, dominios, quimica, intervalos y rutas segun el caso real.
+
+&time_control
+ run_hours                           = 4,
+ history_interval                    = 10,
+ frames_per_outfile                  = 1000,
+ io_form_history                     = 2,
+ io_form_auxinput5                   = 2,
+ auxinput5_inname                    = 'wrfchemi_d03',
+ auxinput5_interval_m                = 60,
+ frames_per_auxinput5                = 5,
+/
+
+&domains
+ max_dom                             = 1,
+ time_step                           = 6,
+/
+
+&chem
+ chem_opt                            = 100,
+ tracer_opt                          = 1,
+ num_tracer                          = 1,
+ io_style_emissions                  = 2,
+ emiss_opt                           = 3,
+ gaschem_onoff                       = 1,
+ aerchem_onoff                       = 0,
+/
