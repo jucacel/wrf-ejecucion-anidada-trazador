@@ -51,9 +51,11 @@ docs/
   02_wps_real_ndown.md
   03_trazador_inerte.md
   04_postproceso_imagenes.md
+  05_datos_meteorologicos.md
 templates/
   rutas_linux.template.env
 commands/
+  00_download_meteo.sh
   00_check_entorno.sh
   01_preparar_arbol_caso.sh
   02_wps.sh
@@ -77,6 +79,7 @@ namelist_snippets/
 | `docs/02_wps_real_ndown.md` | Explica los pasos WPS, los productos de `real.exe` y el uso conceptual de `ndown.exe` para avanzar hacia dominios finos. |
 | `docs/03_trazador_inerte.md` | Resume configuracion de trazador, ventana temporal 4 h / 1 h y criterios de verificacion en `wrfout`. |
 | `docs/04_postproceso_imagenes.md` | Lista entradas, productos esperados y ejemplo de comando para generar figuras del penacho. |
+| `docs/05_datos_meteorologicos.md` | Documenta opciones para descargar GFS/NOMADS, FNL/RDA o ERA5/CDS y preparar archivos para WPS. |
 | `namelist_snippets/namelist.input.tracer_4h.snippet` | Fragmento orientativo de `namelist.input` para una corrida `d03` corta con `wrfchemi_d03`. |
 
 ## Requisitos previos
@@ -113,6 +116,8 @@ Variables principales:
 | `WRF_EM_REAL` | Carpeta `test/em_real` o equivalente con ejecutables WRF. |
 | `GEOG_DATA` | Datos geograficos WPS. |
 | `MET_DATA_ROOT` | Datos meteorologicos externos. |
+| `MET_DATA_SOURCE` | Fuente de datos meteorologicos: `manual`, `gfs_nomads`, `fnl_rda` o `era5_cds`. |
+| `GFS_DATE`, `GFS_CYCLE`, `GFS_FORECAST_HOURS` | Parametros para descarga GFS/NOMADS si se usa `gfs_nomads`. |
 | `NAMELIST_WPS` | `namelist.wps` real del caso. |
 | `NAMELIST_REAL` | `namelist.input` para `real.exe`. |
 | `NAMELIST_NDOWN12` | `namelist.input` para `ndown` d01 -> d02. |
@@ -129,6 +134,7 @@ Variables principales:
 ## Flujo rapido
 
 ```bash
+bash commands/00_download_meteo.sh rutas_linux.env
 bash commands/00_check_entorno.sh rutas_linux.env
 bash commands/01_preparar_arbol_caso.sh rutas_linux.env
 bash commands/02_wps.sh rutas_linux.env
@@ -146,7 +152,52 @@ archivos.
 
 ## Procedimiento detallado
 
-### 1. Revisar entorno
+### 1. Descargar o ubicar datos meteorologicos
+
+La fuente meteorologica se define con `MET_DATA_SOURCE`.
+
+```bash
+bash commands/00_download_meteo.sh rutas_linux.env
+```
+
+Modos soportados:
+
+- `manual`: no descarga; recuerda ubicar archivos en `MET_DATA_ROOT`.
+- `gfs_nomads`: descarga GFS 0.25 grados desde NOMADS con `curl`.
+- `fnl_rda`: documenta la descarga manual/autenticada desde NCAR RDA.
+- `era5_cds`: documenta la descarga manual/API desde Copernicus CDS.
+
+Para GFS/NOMADS, configurar por ejemplo:
+
+```bash
+export MET_DATA_SOURCE="gfs_nomads"
+export GFS_DATE="20240901"
+export GFS_CYCLE="00"
+export GFS_FORECAST_HOURS="000 003 006 009 012"
+```
+
+Opcionalmente se puede recortar espacialmente:
+
+```bash
+export GFS_SUBREGION="leftlon=-80&rightlon=-70&toplat=10&bottomlat=0"
+```
+
+Validar los archivos descargados:
+
+```bash
+find "$MET_DATA_ROOT" -type f | head
+du -sh "$MET_DATA_ROOT"
+```
+
+Si hay `wgrib2`:
+
+```bash
+wgrib2 archivo.grib2 | head
+```
+
+Ver mas detalles en `docs/05_datos_meteorologicos.md`.
+
+### 2. Revisar entorno
 
 Ejecutar:
 
@@ -164,7 +215,7 @@ Debe confirmar:
 
 No continuar si faltan ejecutables o datos base.
 
-### 2. Crear arbol de trabajo
+### 3. Crear arbol de trabajo
 
 ```bash
 bash commands/01_preparar_arbol_caso.sh rutas_linux.env
@@ -181,7 +232,7 @@ Crea carpetas para:
 
 La carpeta `CASE_ROOT` debe quedar fuera de Git.
 
-### 3. Ejecutar WPS
+### 4. Ejecutar WPS
 
 ```bash
 bash commands/02_wps.sh rutas_linux.env
@@ -215,7 +266,19 @@ j_parent_start = 1, <j_d02>, <j_d03>
 Si `ungrib.exe` usa datos separados de presion/superficie, ajustar `Vtable`,
 `prefix` y `fg_name` segun la fuente meteorologica local.
 
-### 4. Ejecutar `real.exe`
+Para GFS/NOMADS:
+
+```bash
+cd "$RUN_WPS"
+ln -sf ungrib/Variable_Tables/Vtable.GFS Vtable
+./link_grib.csh "$MET_DATA_ROOT"/gfs_nomads/*.grib2
+./ungrib.exe
+```
+
+Para FNL/RDA o ERA5/CDS, usar el `Vtable` y estructura de archivos compatibles
+con la version local de WPS.
+
+### 5. Ejecutar `real.exe`
 
 ```bash
 bash commands/03_real_d01_d02_d03.sh rutas_linux.env
@@ -238,7 +301,7 @@ ls -lh wrfinput_d01 wrfinput_d02 wrfinput_d03 wrfbdy_d01
 Si `real.exe` falla, revisar fechas de `met_em`, dominios, niveles verticales,
 fisica y consistencia de `namelist.input`.
 
-### 5. Preparar d02 con `ndown`
+### 6. Preparar d02 con `ndown`
 
 ```bash
 bash commands/04_ndown_d01_d02.sh rutas_linux.env
@@ -250,7 +313,7 @@ intermedios, enlaces a `wrfout_d01_*` o archivos `wrfndi`.
 
 Validar que el dominio hijo queda preparado antes de avanzar a `d03`.
 
-### 6. Preparar d03 con `ndown`
+### 7. Preparar d03 con `ndown`
 
 ```bash
 bash commands/05_ndown_d02_d03.sh rutas_linux.env
@@ -262,7 +325,7 @@ Validar que existan los archivos necesarios para la corrida final del dominio
 fino, especialmente `wrfinput_d03` y la frontera que corresponda a la
 configuracion local.
 
-### 7. Preparar pulso de trazador
+### 8. Preparar pulso de trazador
 
 ```bash
 bash commands/06_generar_pulso_trazador.sh rutas_linux.env
@@ -286,7 +349,7 @@ ls -lh wrfchemi_d03
 ncdump -h wrfchemi_d03 | head
 ```
 
-### 8. Configurar `namelist.input` de d03
+### 9. Configurar `namelist.input` de d03
 
 El archivo apuntado por `NAMELIST_D03_TRACER` debe estar ajustado para la
 corrida corta.
@@ -319,7 +382,7 @@ Campos orientativos:
 Use `namelist_snippets/namelist.input.tracer_4h.snippet` como recordatorio, no
 como namelist completo.
 
-### 9. Ejecutar WRF en d03
+### 10. Ejecutar WRF en d03
 
 ```bash
 bash commands/07_run_wrf_d03_4h.sh rutas_linux.env
@@ -344,7 +407,7 @@ Verificar que exista trazador en salida:
 ncdump -h wrfout_d03_* | grep -E "CO_T|N_SLV|S_SLV|TRACER|co"
 ```
 
-### 10. Postprocesar imagenes de d03
+### 11. Postprocesar imagenes de d03
 
 ```bash
 bash commands/08_postprocesar_d03.sh rutas_linux.env
