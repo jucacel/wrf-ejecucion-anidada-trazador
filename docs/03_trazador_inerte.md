@@ -10,6 +10,10 @@ simulacion de 4 horas en el dominio `d03`.
 El `namelist.input` debe activar el transporte del trazador y la lectura de
 emisiones auxiliares si el pulso se entrega como `wrfchemi`.
 
+El pulso se libera como emision superficial, pero su transporte inicial en
+WRF-Chem ocurre dentro de la primera capa atmosferica del modelo, representada
+aproximadamente entre 0 y 51 m sobre el terreno, con centro en 25.6 m AGL.
+
 Campos tipicos que deben revisarse:
 
 ```fortran

@@ -386,6 +386,10 @@ directamente como `wrfchemi_d03`:
 bash commands/06_generar_pulso_trazador.sh rutas_linux.env
 ```
 
+El pulso se libera como emision superficial, pero su transporte inicial en
+WRF-Chem ocurre dentro de la primera capa atmosferica del modelo, representada
+aproximadamente entre 0 y 51 m sobre el terreno, con centro en 25.6 m AGL.
+
 El comando genera `wrfchemi_d03` usando:
 
 - `wrfinput_d03` como referencia de grilla;
